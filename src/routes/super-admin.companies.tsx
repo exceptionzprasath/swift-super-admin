@@ -50,6 +50,8 @@ function CompaniesPage() {
   const [createEmployees, setCreateEmployees] = useState(0);
   const [createPlan, setCreatePlan] = useState("");
   const [createStatus, setCreateStatus] = useState("trial");
+  const [createAdminEmail, setCreateAdminEmail] = useState("");
+  const [createAdminPassword, setCreateAdminPassword] = useState("");
 
   const handleNameChange = (val: string) => {
     setCreateName(val);
@@ -244,6 +246,16 @@ function CompaniesPage() {
                   </select>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Work Email</Label>
+                  <Input type="email" value={createAdminEmail} onChange={(e) => setCreateAdminEmail(e.target.value)} placeholder="admin@acme.com" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Password</Label>
+                  <Input type="password" value={createAdminPassword} onChange={(e) => setCreateAdminPassword(e.target.value)} placeholder="••••••••" />
+                </div>
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
                 <Button className="bg-gradient-brand text-white shadow-glow" onClick={async () => {
@@ -259,7 +271,9 @@ function CompaniesPage() {
                       legalName: createLegalName,
                       plan: createPlan,
                       status: createStatus,
-                      employees: createEmployees
+                      employees: createEmployees,
+                      adminEmail: createAdminEmail,
+                      adminPassword: createAdminPassword
                     });
                     await ensureSubscription(t.id, createPlan);
                     toast.success("Tenant registered successfully");
@@ -269,6 +283,8 @@ function CompaniesPage() {
                     setCreateLegalName("");
                     setCreateEmployees(0);
                     setCreateStatus("trial");
+                    setCreateAdminEmail("");
+                    setCreateAdminPassword("");
                     void reload();
                   } catch (e: any) {
                     toast.error(e.message || "Failed to create tenant");

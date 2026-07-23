@@ -149,6 +149,8 @@ export type Tenant = {
   status: "active" | "trial" | "suspended" | "cancelled" | string;
   createdAt: string;
   employees: number;
+  adminEmail?: string;
+  adminPassword?: string;
 };
 
 type State = {

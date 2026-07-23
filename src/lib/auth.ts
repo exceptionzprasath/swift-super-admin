@@ -10,6 +10,8 @@ export type Tenant = {
   plan: string;
   status: string;
   created_at: string;
+  adminEmail?: string;
+  adminPassword?: string;
 };
 
 export type TenantMembership = {
