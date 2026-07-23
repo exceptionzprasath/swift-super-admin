@@ -1,1 +1,0 @@
-import{s as e,t}from"./store-CxTeTJ-r.js";import{p as n}from"./index-Br6F0dLd.js";import{t as r}from"./auth-CfUxwx9U.js";var i=e();function a(){let{user:e,isSuperAdmin:a,loading:o}=r(),s=t(e=>e.demoMode),c=t(e=>e.demoSuper);return typeof window<`u`&&!o&&!(e&&a)&&!(s&&c)&&t.getState().seedSuperDemo(),(0,i.jsx)(n,{})}export{a as component};

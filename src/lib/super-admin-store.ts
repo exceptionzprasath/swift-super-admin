@@ -196,7 +196,31 @@ type State = {
   resetOps: () => Promise<void>;
 };
 
-const API_URL = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+export function getBackendUrl(): string {
+  const customUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+  if (customUrl) return customUrl.replace(/\/+$/, "");
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1" && host !== "0.0.0.0") {
+      return "";
+    }
+  }
+  return "http://localhost:5000";
+}
+
+export async function safeFetch(path: string, options?: RequestInit): Promise<Response | null> {
+  const baseUrl = getBackendUrl();
+  if (!baseUrl && typeof window !== "undefined") {
+    return null;
+  }
+  try {
+    const fullUrl = path.startsWith("http") ? path : `${baseUrl}${path}`;
+    const res = await fetch(fullUrl, options);
+    return res;
+  } catch (_err) {
+    return null;
+  }
+}
 
 const initial = () => ({
   tickets: [] as SupportTicket[],
@@ -214,110 +238,103 @@ export const useSuperAdmin = create<State>()((set, get) => ({
   ...initial(),
 
   loadSuperAdmin: async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/initial-state`);
-      if (res.ok) {
+    const res = await safeFetch("/api/initial-state");
+    if (res && res.ok) {
+      try {
         const data = await res.json();
         set({
-          tickets: data.tickets || [],
-          touchpoints: data.touchpoints || [],
-          checklists: data.checklists || {},
-          impersonation: data.impersonation || [],
+          tickets: data.tickets && data.tickets.length ? data.tickets : get().tickets,
+          touchpoints: data.touchpoints && data.touchpoints.length ? data.touchpoints : get().touchpoints,
+          checklists: data.checklists || get().checklists,
+          impersonation: data.impersonation || get().impersonation,
           whiteLabel: data.whiteLabel || defaultWhiteLabel,
           upi: data.upi || defaultUpi,
-          paymentSubmissions: data.paymentSubmissions || [],
-          tenants: data.tenants || [],
+          paymentSubmissions: data.paymentSubmissions || get().paymentSubmissions,
+          tenants: data.tenants && data.tenants.length ? data.tenants : get().tenants,
         });
+      } catch (_err) {
+        // Fallback to local store state
       }
-    } catch (err) {
-      console.error("Failed to load Super Admin state from API", err);
     }
   },
 
   addTicket: async (t) => {
-    try {
-      const res = await fetch(`${API_URL}/api/tickets`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(t),
-      });
-      if (res.ok) {
-        const ticket = await res.json();
-        set((s) => ({ tickets: [ticket, ...s.tickets] }));
-      }
-    } catch (err) {
-      console.error("Error in addTicket:", err);
+    const ticket: SupportTicket = {
+      ...t,
+      id: (t as any).id || crypto.randomUUID(),
+      createdAt: (t as any).createdAt || new Date().toISOString(),
+      updatedAt: (t as any).updatedAt || new Date().toISOString(),
+      notes: t.notes || [],
+    };
+    set((s) => ({ tickets: [ticket, ...s.tickets.filter((x) => x.id !== ticket.id)] }));
+    const res = await safeFetch("/api/tickets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(ticket),
+    });
+    if (res && res.ok) {
+      try {
+        const item = await res.json();
+        set((s) => ({ tickets: s.tickets.map((x) => (x.id === ticket.id ? item : x)) }));
+      } catch (_err) {}
     }
   },
 
   updateTicket: async (id, patch) => {
-    try {
-      const res = await fetch(`${API_URL}/api/tickets/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-      if (res.ok) {
+    set((s) => ({ tickets: s.tickets.map((t) => (t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t)) }));
+    const res = await safeFetch(`/api/tickets/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (res && res.ok) {
+      try {
         const updated = await res.json();
-        set((s) => ({ tickets: s.tickets.map((t) => t.id === id ? updated : t) }));
-      }
-    } catch (err) {
-      console.error("Error in updateTicket:", err);
+        set((s) => ({ tickets: s.tickets.map((t) => (t.id === id ? updated : t)) }));
+      } catch (_err) {}
     }
   },
 
   addTicketNote: async (id, note) => {
-    try {
-      const res = await fetch(`${API_URL}/api/tickets/${id}/notes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(note),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        set((s) => ({ tickets: s.tickets.map((t) => t.id === id ? updated : t) }));
-      }
-    } catch (err) {
-      console.error("Error in addTicketNote:", err);
-    }
+    const noteObj: TicketNote = { ...note, id: (note as any).id || crypto.randomUUID(), ts: note.ts || new Date().toISOString() };
+    set((s) => ({
+      tickets: s.tickets.map((t) => (t.id === id ? { ...t, notes: [...t.notes, noteObj], updatedAt: new Date().toISOString() } : t)),
+    }));
+    await safeFetch(`/api/tickets/${id}/notes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(noteObj),
+    });
   },
 
   deleteTicket: async (id) => {
-    try {
-      const res = await fetch(`${API_URL}/api/tickets/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        set((s) => ({ tickets: s.tickets.filter((t) => t.id !== id) }));
-      }
-    } catch (err) {
-      console.error("Error in deleteTicket:", err);
-    }
+    set((s) => ({ tickets: s.tickets.filter((t) => t.id !== id) }));
+    await safeFetch(`/api/tickets/${id}`, { method: "DELETE" });
   },
 
   addTouchpoint: async (t) => {
-    try {
-      const res = await fetch(`${API_URL}/api/touchpoints`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(t),
-      });
-      if (res.ok) {
+    const touchpoint: Touchpoint = {
+      ...t,
+      id: (t as any).id || crypto.randomUUID(),
+      ts: t.ts || new Date().toISOString(),
+    };
+    set((s) => ({ touchpoints: [touchpoint, ...s.touchpoints.filter((x) => x.id !== touchpoint.id)] }));
+    const res = await safeFetch("/api/touchpoints", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(touchpoint),
+    });
+    if (res && res.ok) {
+      try {
         const item = await res.json();
-        set((s) => ({ touchpoints: [item, ...s.touchpoints] }));
-      }
-    } catch (err) {
-      console.error("Error in addTouchpoint:", err);
+        set((s) => ({ touchpoints: s.touchpoints.map((x) => (x.id === touchpoint.id ? item : x)) }));
+      } catch (_err) {}
     }
   },
 
   deleteTouchpoint: async (id) => {
-    try {
-      const res = await fetch(`${API_URL}/api/touchpoints/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        set((s) => ({ touchpoints: s.touchpoints.filter((t) => t.id !== id) }));
-      }
-    } catch (err) {
-      console.error("Error in deleteTouchpoint:", err);
-    }
+    set((s) => ({ touchpoints: s.touchpoints.filter((t) => t.id !== id) }));
+    await safeFetch(`/api/touchpoints/${id}`, { method: "DELETE" });
   },
 
   getChecklist: (tenantId) => {
@@ -325,37 +342,24 @@ export const useSuperAdmin = create<State>()((set, get) => ({
   },
 
   setChecklistItem: async (tenantId, key, val) => {
-    try {
-      const current = get().checklists[tenantId] ?? emptyChecklist();
-      const nextChecklist = { ...current, [key]: val };
-      const res = await fetch(`${API_URL}/api/checklists/${tenantId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ checklist: nextChecklist }),
-      });
-      if (res.ok) {
-        const item = await res.json();
-        set((s) => ({ checklists: { ...s.checklists, [tenantId]: item.checklist } }));
-      }
-    } catch (err) {
-      console.error("Error in setChecklistItem:", err);
-    }
+    const current = get().checklists[tenantId] ?? emptyChecklist();
+    const nextChecklist = { ...current, [key]: val };
+    set((s) => ({ checklists: { ...s.checklists, [tenantId]: nextChecklist } }));
+    await safeFetch(`/api/checklists/${tenantId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ checklist: nextChecklist }),
+    });
   },
 
   recordImpersonation: async (tenantId, actor, note) => {
-    try {
-      const res = await fetch(`${API_URL}/api/impersonations`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tenantId, actor, note }),
-      });
-      if (res.ok) {
-        const item = await res.json();
-        set((s) => ({ impersonation: [item, ...s.impersonation].slice(0, 200) }));
-      }
-    } catch (err) {
-      console.error("Error in recordImpersonation:", err);
-    }
+    const item: ImpersonationLog = { id: crypto.randomUUID(), tenantId, actor, note, ts: new Date().toISOString() };
+    set((s) => ({ impersonation: [item, ...s.impersonation].slice(0, 200) }));
+    await safeFetch("/api/impersonations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tenantId, actor, note }),
+    });
   },
 
   updateWhiteLabel: async (patch) => {

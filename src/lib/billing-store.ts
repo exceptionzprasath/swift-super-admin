@@ -74,7 +74,7 @@ type BillingState = {
   resetBilling: () => Promise<void>;
 };
 
-const API_URL = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+import { safeFetch } from "./super-admin-store";
 
 const initial = () => ({
   plans: defaultPlans(),
@@ -92,24 +92,22 @@ export const useBilling = create<BillingState>()((set, get) => ({
   ...initial(),
 
   loadBilling: async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/initial-state`);
-      if (res.ok) {
+    const res = await safeFetch("/api/initial-state");
+    if (res && res.ok) {
+      try {
         const data = await res.json();
         set({
-          plans: data.plans || defaultPlans(),
-          coupons: data.coupons || defaultCoupons(),
-          referralPrograms: data.referralPrograms || defaultReferralPrograms(),
-          subscriptions: data.subscriptions || [],
-          invoices: data.invoices || [],
-          referrals: data.referrals || [],
-          audit: data.audit || [],
-          reminderConfig: data.reminderConfig || defaultReminderConfig,
-          reminderLog: data.reminderLog || [],
+          plans: data.plans && data.plans.length ? data.plans : get().plans,
+          coupons: data.coupons && data.coupons.length ? data.coupons : get().coupons,
+          referralPrograms: data.referralPrograms && data.referralPrograms.length ? data.referralPrograms : get().referralPrograms,
+          subscriptions: data.subscriptions || get().subscriptions,
+          invoices: data.invoices || get().invoices,
+          referrals: data.referrals || get().referrals,
+          audit: data.audit || get().audit,
+          reminderConfig: data.reminderConfig || get().reminderConfig,
+          reminderLog: data.reminderLog || get().reminderLog,
         });
-      }
-    } catch (err) {
-      console.error("Failed to load billing state from API", err);
+      } catch (_err) {}
     }
   },
 
