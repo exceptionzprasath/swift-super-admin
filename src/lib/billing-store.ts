@@ -74,7 +74,9 @@ type BillingState = {
   resetBilling: () => Promise<void>;
 };
 
-import { safeFetch } from "./super-admin-store";
+import { safeFetch, getBackendUrl } from "./super-admin-store";
+
+const API_URL = getBackendUrl();
 
 const initial = () => ({
   plans: defaultPlans(),

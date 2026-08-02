@@ -189,7 +189,7 @@ type State = {
   deletePayment: (id: string) => Promise<void>;
 
   addTenant: (t: Omit<Tenant, "id" | "createdAt">) => Promise<Tenant>;
-  updateTenant: (id: string, patch: Partial<Tenant>) => Promise<void>;
+  updateTenant: (id: string, patch: Partial<Tenant>) => Promise<boolean>;
   deleteTenant: (id: string) => Promise<void>;
 
   seedDemoOps: () => Promise<void>;
@@ -207,6 +207,8 @@ export function getBackendUrl(): string {
   }
   return "http://localhost:5000";
 }
+
+const API_URL = getBackendUrl();
 
 export async function safeFetch(path: string, options?: RequestInit): Promise<Response | null> {
   const baseUrl = getBackendUrl();
@@ -264,7 +266,7 @@ export const useSuperAdmin = create<State>()((set, get) => ({
       id: (t as any).id || crypto.randomUUID(),
       createdAt: (t as any).createdAt || new Date().toISOString(),
       updatedAt: (t as any).updatedAt || new Date().toISOString(),
-      notes: t.notes || [],
+      notes: (t as any).notes || [],
     };
     set((s) => ({ tickets: [ticket, ...s.tickets.filter((x) => x.id !== ticket.id)] }));
     const res = await safeFetch("/api/tickets", {
@@ -296,7 +298,7 @@ export const useSuperAdmin = create<State>()((set, get) => ({
   },
 
   addTicketNote: async (id, note) => {
-    const noteObj: TicketNote = { ...note, id: (note as any).id || crypto.randomUUID(), ts: note.ts || new Date().toISOString() };
+    const noteObj: TicketNote = { ...note, id: (note as any).id || crypto.randomUUID(), ts: (note as any).ts || new Date().toISOString() };
     set((s) => ({
       tickets: s.tickets.map((t) => (t.id === id ? { ...t, notes: [...t.notes, noteObj], updatedAt: new Date().toISOString() } : t)),
     }));
@@ -316,7 +318,7 @@ export const useSuperAdmin = create<State>()((set, get) => ({
     const touchpoint: Touchpoint = {
       ...t,
       id: (t as any).id || crypto.randomUUID(),
-      ts: t.ts || new Date().toISOString(),
+      ts: (t as any).ts || new Date().toISOString(),
     };
     set((s) => ({ touchpoints: [touchpoint, ...s.touchpoints.filter((x) => x.id !== touchpoint.id)] }));
     const res = await safeFetch("/api/touchpoints", {
@@ -535,9 +537,12 @@ export const useSuperAdmin = create<State>()((set, get) => ({
       if (res.ok) {
         const updated = await res.json();
         set((s) => ({ tenants: s.tenants.map((t) => t.id === id ? updated : t) }));
+        return true;
       }
+      return false;
     } catch (err) {
       console.error("Error in updateTenant:", err);
+      return false;
     }
   },
 

@@ -306,8 +306,43 @@ function CompanyDetail({ row }: { row: Row }) {
     plans, subscriptions, invoices, ensureSubscription, updateSubscription,
     upgrade, downgrade, renew, setModuleOverride, setFeatureOverride, setLimitOverride,
   } = useBilling();
-  const { tickets, touchpoints, checklists, setChecklistItem } = useSuperAdmin();
+  const { tickets, touchpoints, checklists, setChecklistItem, tenants, updateTenant } = useSuperAdmin();
   const sub = subscriptions.find((s) => s.tenantId === row.id);
+
+  const tenantDetails = tenants.find((t) => t.id === row.id);
+  const [email, setEmail] = useState(tenantDetails?.adminEmail || "");
+  const [password, setPassword] = useState(tenantDetails?.adminPassword || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (tenantDetails) {
+      setEmail(tenantDetails.adminEmail || "");
+      setPassword(tenantDetails.adminPassword || "");
+    }
+  }, [tenantDetails]);
+
+    const handleSaveCredentials = async () => {
+      if (!email.trim()) {
+        toast.error("Admin Email/Username cannot be empty");
+        return;
+      }
+      setIsSaving(true);
+      try {
+        const success = await updateTenant(row.id, {
+          adminEmail: email.trim(),
+          adminPassword: password.trim(),
+        });
+        if (success) {
+          toast.success("Admin credentials updated successfully");
+        } else {
+          toast.error("Failed to update credentials on server");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update credentials");
+      } finally {
+        setIsSaving(false);
+      }
+    };
 
   useEffect(() => {
     if (!sub) {
@@ -343,6 +378,7 @@ function CompanyDetail({ row }: { row: Row }) {
     <Tabs defaultValue="profile" className="space-y-3">
       <TabsList className="flex-wrap h-auto">
         <TabsTrigger value="profile">Profile</TabsTrigger>
+        <TabsTrigger value="credentials">Credentials</TabsTrigger>
         <TabsTrigger value="sub">Subscription</TabsTrigger>
         <TabsTrigger value="access">Access & Overrides</TabsTrigger>
         <TabsTrigger value="invoices">Invoices</TabsTrigger>
@@ -358,6 +394,47 @@ function CompanyDetail({ row }: { row: Row }) {
         <KV label="Source" val={row.source} />
         <KV label="Employees" val={String(row.employees)} />
         <KV label="Created" val={new Date(row.createdAt).toLocaleString()} />
+      </TabsContent>
+
+      <TabsContent value="credentials" className="space-y-4 text-sm mt-2">
+        <div className="rounded-lg border p-4 space-y-4">
+          <div>
+            <h3 className="font-semibold text-sm">Reset Admin Credentials</h3>
+            <p className="text-xs text-muted-foreground">
+              Update the login credentials for this company's owner/administrator account.
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Admin Username (Email)</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@company.com"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label>New Password</Label>
+              <Input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter new password"
+              />
+            </div>
+
+            <Button
+              className="w-full bg-gradient-brand text-white shadow-glow mt-2"
+              onClick={handleSaveCredentials}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Update Credentials"}
+            </Button>
+          </div>
+        </div>
       </TabsContent>
 
       <TabsContent value="sub" className="space-y-3 text-sm">
