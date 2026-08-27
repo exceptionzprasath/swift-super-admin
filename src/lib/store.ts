@@ -200,6 +200,7 @@ export type Employee = {
   managerId?: string;
   about?: string;
   branchId?: string;
+  branchIds?: string[];
   photoDataUrl?: string;
   gender?: "male" | "female" | "other";
   dob?: string;
