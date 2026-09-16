@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ALL_MODULES, FEATURE_KEYS, type ModuleStatus, type PlanLimits } from "@/lib/billing";
 import { toast } from "sonner";
 import {
-  Search, Play, Pause, Trash2, Copy, LogIn, Loader2, PowerOff, RotateCcw,
+  Search, Play, Pause, Trash2, Copy, LogIn, Loader2, PowerOff, RotateCcw, Lock, Eye, EyeOff,
 } from "lucide-react";
 
 
@@ -312,37 +312,42 @@ function CompanyDetail({ row }: { row: Row }) {
   const tenantDetails = tenants.find((t) => t.id === row.id);
   const [email, setEmail] = useState(tenantDetails?.adminEmail || "");
   const [password, setPassword] = useState(tenantDetails?.adminPassword || "");
+  const [payrollLockPassword, setPayrollLockPassword] = useState(tenantDetails?.payrollLockPassword || "");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPayrollPassword, setShowPayrollPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (tenantDetails) {
       setEmail(tenantDetails.adminEmail || "");
       setPassword(tenantDetails.adminPassword || "");
+      setPayrollLockPassword(tenantDetails.payrollLockPassword || "");
     }
   }, [tenantDetails]);
 
-    const handleSaveCredentials = async () => {
-      if (!email.trim()) {
-        toast.error("Admin Email/Username cannot be empty");
-        return;
+  const handleSaveCredentials = async () => {
+    if (!email.trim()) {
+      toast.error("Admin Email/Username cannot be empty");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const success = await updateTenant(row.id, {
+        adminEmail: email.trim(),
+        adminPassword: password.trim(),
+        payrollLockPassword: payrollLockPassword.trim(),
+      });
+      if (success) {
+        toast.success("Admin credentials & Payroll Lock password updated successfully");
+      } else {
+        toast.error("Failed to update credentials on server");
       }
-      setIsSaving(true);
-      try {
-        const success = await updateTenant(row.id, {
-          adminEmail: email.trim(),
-          adminPassword: password.trim(),
-        });
-        if (success) {
-          toast.success("Admin credentials updated successfully");
-        } else {
-          toast.error("Failed to update credentials on server");
-        }
-      } catch (err: any) {
-        toast.error(err.message || "Failed to update credentials");
-      } finally {
-        setIsSaving(false);
-      }
-    };
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update credentials");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (!sub) {
@@ -417,13 +422,52 @@ function CompanyDetail({ row }: { row: Row }) {
             </div>
             
             <div className="space-y-1.5">
-              <Label>New Password</Label>
+              <div className="flex items-center justify-between">
+                <Label>New Password</Label>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               <Input
-                type="text"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter new password"
               />
+            </div>
+
+            {/* Change Password for Payroll Lock Option */}
+            <div className="space-y-1.5 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1.5 font-medium">
+                  <Lock className="h-3.5 w-3.5 text-primary" />
+                  Change Password for Payroll Lock
+                </Label>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPayrollPassword(!showPayrollPassword)}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer focus:outline-none"
+                >
+                  {showPayrollPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {showPayrollPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              <Input
+                type={showPayrollPassword ? "text" : "password"}
+                value={payrollLockPassword}
+                onChange={(e) => setPayrollLockPassword(e.target.value)}
+                placeholder="Enter new password for payroll lock"
+              />
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                This password is required by admins when locking or unlocking monthly payroll periods in the Admin Panel. If left empty, payroll locking in the Admin Panel will not be permitted.
+              </p>
             </div>
 
             <Button
