@@ -241,3 +241,16 @@
 @utility animate-swift-ping {
   animation: swift-ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+/* Hide native Edge / IE / Safari reveal and autofill overlay eye icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+}

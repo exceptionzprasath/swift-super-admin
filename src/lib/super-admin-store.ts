@@ -151,6 +151,7 @@ export type Tenant = {
   employees: number;
   adminEmail?: string;
   adminPassword?: string;
+  payrollLockPassword?: string;
 };
 
 type State = {

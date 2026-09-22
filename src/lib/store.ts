@@ -1009,14 +1009,7 @@ export const useStore = create<State>()(
         set({ employees, attendance, leaves, payrolls, currentUser, demoMode: true });
       },
       seedSuperDemo: () => {
-        const now = new Date();
-        const mkDate = (daysAgo: number) => new Date(now.getTime() - daysAgo * 86400000).toISOString();
-        const demoTenants: DemoTenant[] = [
-          { id: crypto.randomUUID(), name: "Acme Manufacturing", slug: "acme", legalName: "Acme Manufacturing Pvt Ltd", plan: "enterprise", status: "active", employees: 248, createdAt: mkDate(120) },
-          { id: crypto.randomUUID(), name: "Nova Retail", slug: "nova", legalName: "Nova Retail India Pvt Ltd", plan: "growth", status: "active", employees: 87, createdAt: mkDate(64) },
-          { id: crypto.randomUUID(), name: "Meridian Logistics", slug: "meridian", legalName: "Meridian Logistics LLP", plan: "starter", status: "trial", employees: 22, createdAt: mkDate(9) },
-        ];
-        set({ demoSuper: true, demoMode: true, demoTenants, currentUser: { role: "admin", name: "Super Admin (Demo)" } });
+        set({ demoSuper: true, demoMode: true, demoTenants: [], currentUser: { role: "admin", name: "Super Admin (Demo)" } });
       },
       addDemoTenant: (t) =>
         set((s) => ({ demoTenants: [{ ...t, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...s.demoTenants] })),
