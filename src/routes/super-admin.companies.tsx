@@ -117,7 +117,9 @@ function CompaniesPage() {
     seedDemo("admin");
     toast.success(`Now viewing ${row.name}`);
     const adminUrl = import.meta.env.VITE_COMPANY_ADMIN_URL || "http://localhost:5174";
-    window.location.href = `${adminUrl}/login?impersonateTenantId=${row.id}&impersonateRole=admin`;
+    const nameParam = encodeURIComponent(row.name);
+    const slugParam = encodeURIComponent(row.slug || "");
+    window.location.href = `${adminUrl}/login?impersonateTenantId=${row.id}&impersonateRole=admin&impersonateTenantName=${nameParam}&impersonateTenantSlug=${slugParam}`;
   }
 
   return (

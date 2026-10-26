@@ -297,7 +297,7 @@ export function computePayroll(opts: {
     earnings,
     deductions,
     extraDeductions: extraDeductionsList,
-    earningsList: earningsList.map(({ id, name, amount }) => ({ id, name, amount })),
+    earningsList: (earningsList || []).map(({ id, name, amount }) => ({ id, name, amount })),
     employerContrib,
     hourly,
     gross,
