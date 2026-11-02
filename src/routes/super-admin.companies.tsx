@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ALL_MODULES, FEATURE_KEYS, type ModuleStatus, type PlanLimits } from "@/lib/billing";
 import { toast } from "sonner";
 import {
-  Search, Play, Pause, Trash2, Copy, LogIn, Loader2, PowerOff, RotateCcw, Lock, Eye, EyeOff,
+  Search, Play, Pause, Trash2, Copy, LogIn, Loader2, PowerOff, RotateCcw, Lock, Eye, EyeOff, Pencil, Building2,
 } from "lucide-react";
 
 
@@ -43,6 +43,14 @@ function CompaniesPage() {
   const [busy, setBusy] = useState(false);
   const [detail, setDetail] = useState<Row | null>(null);
 
+  const [editingRow, setEditingRow] = useState<Row | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLegalName, setEditLegalName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editEmployees, setEditEmployees] = useState(0);
+  const [editStatus, setEditStatus] = useState("active");
+  const [editBusy, setEditBusy] = useState(false);
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [createSlug, setCreateSlug] = useState("");
@@ -57,6 +65,54 @@ function CompaniesPage() {
     setCreateName(val);
     setCreateLegalName(val);
     setCreateSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+  };
+
+  const handleOpenEdit = (c: Row) => {
+    const t = tenants.find((item) => item.id === c.id);
+    setEditingRow(c);
+    setEditName(t?.name || c.name);
+    setEditLegalName(t?.legalName || t?.name || c.name);
+    setEditSlug(t?.slug || c.slug);
+    setEditEmployees(t?.employees ?? c.employees ?? 0);
+    setEditStatus(t?.status || c.status || "active");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRow) return;
+    if (!editName.trim()) {
+      toast.error("Company name cannot be empty");
+      return;
+    }
+    setEditBusy(true);
+    try {
+      const success = await updateTenant(editingRow.id, {
+        name: editName.trim(),
+        legalName: editLegalName.trim(),
+        slug: editSlug.trim(),
+        employees: Number(editEmployees) || 0,
+        status: editStatus,
+      });
+      if (success) {
+        toast.success(`Updated "${editName.trim()}" successfully`);
+        if (detail?.id === editingRow.id) {
+          setDetail((prev) => prev ? {
+            ...prev,
+            name: editName.trim(),
+            slug: editSlug.trim(),
+            employees: Number(editEmployees) || 0,
+            status: editStatus,
+          } : null);
+        }
+        setEditingRow(null);
+        void reload();
+      } else {
+        toast.error("Failed to update company");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update company");
+    } finally {
+      setEditBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -179,6 +235,7 @@ function CompaniesPage() {
                   </div>
                   <div className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" onClick={() => setDetail(c)}>View</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleOpenEdit(c)}><Pencil className="h-3.5 w-3.5 mr-1" />Edit</Button>
                     <Button size="sm" variant="outline" onClick={() => impersonate(c)}><LogIn className="h-3.5 w-3.5 mr-1" />Enter</Button>
                     <Button size="sm" variant="ghost" onClick={() => clone(c)}><Copy className="h-4 w-4" /></Button>
                     {c.status !== "active" ? (
@@ -200,8 +257,110 @@ function CompaniesPage() {
       {detail && (
         <Dialog open onOpenChange={(o) => !o && setDetail(null)}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{detail.name}</DialogTitle></DialogHeader>
-            <CompanyDetail row={detail} />
+            <DialogHeader className="flex flex-row items-center justify-between pr-6">
+              <div>
+                <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  {detail.name}
+                </DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  /{detail.slug} · {detail.employees} employees · Plan: {detail.plan}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => handleOpenEdit(detail)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit Company
+              </Button>
+            </DialogHeader>
+            <CompanyDetail
+              row={detail}
+              onUpdate={(updatedRow) => {
+                setDetail(updatedRow);
+                void reload();
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {editingRow && (
+        <Dialog open onOpenChange={(o) => !o && setEditingRow(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-4 w-4 text-primary" />
+                Edit Company
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-3">
+              <div className="space-y-1.5">
+                <Label>Company Name *</Label>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Inkpen Erode"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Legal / Registered Entity Name</Label>
+                <Input
+                  value={editLegalName}
+                  onChange={(e) => setEditLegalName(e.target.value)}
+                  placeholder="e.g. Inkpen Erode Private Limited"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Slug</Label>
+                  <Input
+                    value={editSlug}
+                    onChange={(e) => setEditSlug(e.target.value)}
+                    placeholder="inkpen-erode"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Employees</Label>
+                  <Input
+                    type="number"
+                    value={editEmployees}
+                    onChange={(e) => setEditEmployees(parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full h-10 rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="active">Active</option>
+                  <option value="trial">Trial</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="deactivated">Deactivated</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setEditingRow(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-gradient-brand text-white shadow-glow"
+                  onClick={handleSaveEdit}
+                  disabled={editBusy}
+                >
+                  {editBusy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                  Save Changes
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       )}
@@ -303,7 +462,7 @@ function CompaniesPage() {
   );
 }
 
-function CompanyDetail({ row }: { row: Row }) {
+function CompanyDetail({ row, onUpdate }: { row: Row; onUpdate?: (updatedRow: Row) => void }) {
   const {
     plans, subscriptions, invoices, ensureSubscription, updateSubscription,
     upgrade, downgrade, renew, setModuleOverride, setFeatureOverride, setLimitOverride,
@@ -312,6 +471,13 @@ function CompanyDetail({ row }: { row: Row }) {
   const sub = subscriptions.find((s) => s.tenantId === row.id);
 
   const tenantDetails = tenants.find((t) => t.id === row.id);
+  const [companyName, setCompanyName] = useState(tenantDetails?.name || row.name || "");
+  const [companyLegalName, setCompanyLegalName] = useState(tenantDetails?.legalName || tenantDetails?.name || row.name || "");
+  const [companySlug, setCompanySlug] = useState(tenantDetails?.slug || row.slug || "");
+  const [companyEmployees, setCompanyEmployees] = useState(tenantDetails?.employees ?? row.employees ?? 0);
+  const [companyStatus, setCompanyStatus] = useState(tenantDetails?.status || row.status || "active");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
   const [email, setEmail] = useState(tenantDetails?.adminEmail || "");
   const [password, setPassword] = useState(tenantDetails?.adminPassword || "");
   const [payrollLockPassword, setPayrollLockPassword] = useState(tenantDetails?.payrollLockPassword || "");
@@ -321,11 +487,51 @@ function CompanyDetail({ row }: { row: Row }) {
 
   useEffect(() => {
     if (tenantDetails) {
+      setCompanyName(tenantDetails.name || "");
+      setCompanyLegalName(tenantDetails.legalName || tenantDetails.name || "");
+      setCompanySlug(tenantDetails.slug || "");
+      setCompanyEmployees(tenantDetails.employees ?? 0);
+      setCompanyStatus(tenantDetails.status || "active");
       setEmail(tenantDetails.adminEmail || "");
       setPassword(tenantDetails.adminPassword || "");
       setPayrollLockPassword(tenantDetails.payrollLockPassword || "");
     }
   }, [tenantDetails]);
+
+  const handleSaveProfile = async () => {
+    if (!companyName.trim()) {
+      toast.error("Company name cannot be empty");
+      return;
+    }
+    setIsSavingProfile(true);
+    try {
+      const success = await updateTenant(row.id, {
+        name: companyName.trim(),
+        legalName: companyLegalName.trim(),
+        slug: companySlug.trim(),
+        employees: Number(companyEmployees) || 0,
+        status: companyStatus,
+      });
+      if (success) {
+        toast.success("Company profile & name updated successfully");
+        if (onUpdate) {
+          onUpdate({
+            ...row,
+            name: companyName.trim(),
+            slug: companySlug.trim(),
+            employees: Number(companyEmployees) || 0,
+            status: companyStatus,
+          });
+        }
+      } else {
+        toast.error("Failed to update company profile");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update company profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handleSaveCredentials = async () => {
     if (!email.trim()) {
@@ -394,13 +600,103 @@ function CompanyDetail({ row }: { row: Row }) {
         <TabsTrigger value="checklist">Checklist</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="profile" className="grid grid-cols-2 gap-3 text-sm">
-        <KV label="Slug" val={row.slug} />
-        <KV label="Plan" val={row.plan} />
-        <KV label="Status" val={row.status} />
-        <KV label="Source" val={row.source} />
-        <KV label="Employees" val={String(row.employees)} />
-        <KV label="Created" val={new Date(row.createdAt).toLocaleString()} />
+      <TabsContent value="profile" className="space-y-4 text-sm mt-2">
+        <div className="rounded-lg border p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-sm">Edit Company Details</h3>
+              <p className="text-xs text-muted-foreground">
+                Update the company name, legal registered entity name, URL slug, and active employee count.
+              </p>
+            </div>
+            <Badge variant={companyStatus === "active" ? "default" : "secondary"} className="capitalize">
+              {companyStatus}
+            </Badge>
+          </div>
+
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Company Name *</Label>
+              <Input
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Inkpen Erode"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Legal / Registered Entity Name</Label>
+              <Input
+                value={companyLegalName}
+                onChange={(e) => setCompanyLegalName(e.target.value)}
+                placeholder="e.g. Inkpen Erode Private Limited"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>URL Slug</Label>
+                <Input
+                  value={companySlug}
+                  onChange={(e) => setCompanySlug(e.target.value)}
+                  placeholder="inkpen-erode"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Employees</Label>
+                <Input
+                  type="number"
+                  value={companyEmployees}
+                  onChange={(e) => setCompanyEmployees(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <select
+                  value={companyStatus}
+                  onChange={(e) => setCompanyStatus(e.target.value)}
+                  className="w-full h-10 rounded-md border bg-background px-3 text-sm"
+                >
+                  <option value="active">Active</option>
+                  <option value="trial">Trial</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="deactivated">Deactivated</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Subscription Plan</Label>
+                <div className="h-10 flex items-center px-3 rounded-md border bg-muted/30 text-sm font-medium">
+                  {plan?.name ?? row.plan}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-gradient-brand text-white shadow-glow mt-2"
+              onClick={handleSaveProfile}
+              disabled={isSavingProfile}
+            >
+              {isSavingProfile ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
+                </>
+              ) : (
+                "Save Company Profile"
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <KV label="Tenant ID" val={row.id} />
+          <KV label="Source" val={row.source} />
+          <KV label="Created" val={new Date(row.createdAt).toLocaleString()} />
+        </div>
       </TabsContent>
 
       <TabsContent value="credentials" className="space-y-4 text-sm mt-2">
