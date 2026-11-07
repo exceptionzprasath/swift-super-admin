@@ -9,32 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SuperAdminDemoRouteImport } from './routes/super-admin-demo'
-import { Route as SuperAdminRouteImport } from './routes/super-admin'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as SuperAdminRouteImport } from './routes/super-admin'
+import { Route as SuperAdminDemoRouteImport } from './routes/super-admin-demo'
 import { Route as SuperAdminIndexRouteImport } from './routes/super-admin.index'
-import { Route as SuperAdminWhitelabelRouteImport } from './routes/super-admin.whitelabel'
-import { Route as SuperAdminSupportRouteImport } from './routes/super-admin.support'
-import { Route as SuperAdminSuccessRouteImport } from './routes/super-admin.success'
-import { Route as SuperAdminPlansRouteImport } from './routes/super-admin.plans'
-import { Route as SuperAdminPaymentsRouteImport } from './routes/super-admin.payments'
-import { Route as SuperAdminModulesRouteImport } from './routes/super-admin.modules'
-import { Route as SuperAdminComplianceRegistryRouteImport } from './routes/super-admin.compliance-registry'
-import { Route as SuperAdminComplianceKnowledgeRouteImport } from './routes/super-admin.compliance-knowledge'
-import { Route as SuperAdminCompaniesRouteImport } from './routes/super-admin.companies'
-import { Route as SuperAdminBillingRouteImport } from './routes/super-admin.billing'
-import { Route as SuperAdminAuditRouteImport } from './routes/super-admin.audit'
 import { Route as SuperAdminAiRouteImport } from './routes/super-admin.ai'
+import { Route as SuperAdminAuditRouteImport } from './routes/super-admin.audit'
+import { Route as SuperAdminBillingRouteImport } from './routes/super-admin.billing'
+import { Route as SuperAdminCompaniesRouteImport } from './routes/super-admin.companies'
+import { Route as SuperAdminComplianceKnowledgeRouteImport } from './routes/super-admin.compliance-knowledge'
+import { Route as SuperAdminComplianceRegistryRouteImport } from './routes/super-admin.compliance-registry'
+import { Route as SuperAdminModulesRouteImport } from './routes/super-admin.modules'
+import { Route as SuperAdminPaymentsRouteImport } from './routes/super-admin.payments'
+import { Route as SuperAdminPlansRouteImport } from './routes/super-admin.plans'
+import { Route as SuperAdminSuccessRouteImport } from './routes/super-admin.success'
+import { Route as SuperAdminSupportRouteImport } from './routes/super-admin.support'
+import { Route as SuperAdminWhitelabelRouteImport } from './routes/super-admin.whitelabel'
 
-const SuperAdminDemoRoute = SuperAdminDemoRouteImport.update({
-  id: '/super-admin-demo',
-  path: '/super-admin-demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SuperAdminRoute = SuperAdminRouteImport.update({
-  id: '/super-admin',
-  path: '/super-admin',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -42,9 +37,14 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SuperAdminRoute = SuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuperAdminDemoRoute = SuperAdminDemoRouteImport.update({
+  id: '/super-admin-demo',
+  path: '/super-admin-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuperAdminIndexRoute = SuperAdminIndexRouteImport.update({
@@ -52,56 +52,9 @@ const SuperAdminIndexRoute = SuperAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SuperAdminRoute,
 } as any)
-const SuperAdminWhitelabelRoute = SuperAdminWhitelabelRouteImport.update({
-  id: '/whitelabel',
-  path: '/whitelabel',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminSupportRoute = SuperAdminSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminSuccessRoute = SuperAdminSuccessRouteImport.update({
-  id: '/success',
-  path: '/success',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminPlansRoute = SuperAdminPlansRouteImport.update({
-  id: '/plans',
-  path: '/plans',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminPaymentsRoute = SuperAdminPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminModulesRoute = SuperAdminModulesRouteImport.update({
-  id: '/modules',
-  path: '/modules',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminComplianceRegistryRoute =
-  SuperAdminComplianceRegistryRouteImport.update({
-    id: '/compliance-registry',
-    path: '/compliance-registry',
-    getParentRoute: () => SuperAdminRoute,
-  } as any)
-const SuperAdminComplianceKnowledgeRoute =
-  SuperAdminComplianceKnowledgeRouteImport.update({
-    id: '/compliance-knowledge',
-    path: '/compliance-knowledge',
-    getParentRoute: () => SuperAdminRoute,
-  } as any)
-const SuperAdminCompaniesRoute = SuperAdminCompaniesRouteImport.update({
-  id: '/companies',
-  path: '/companies',
-  getParentRoute: () => SuperAdminRoute,
-} as any)
-const SuperAdminBillingRoute = SuperAdminBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
+const SuperAdminAiRoute = SuperAdminAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => SuperAdminRoute,
 } as any)
 const SuperAdminAuditRoute = SuperAdminAuditRouteImport.update({
@@ -109,9 +62,56 @@ const SuperAdminAuditRoute = SuperAdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => SuperAdminRoute,
 } as any)
-const SuperAdminAiRoute = SuperAdminAiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
+const SuperAdminBillingRoute = SuperAdminBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminCompaniesRoute = SuperAdminCompaniesRouteImport.update({
+  id: '/companies',
+  path: '/companies',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminComplianceKnowledgeRoute =
+  SuperAdminComplianceKnowledgeRouteImport.update({
+    id: '/compliance-knowledge',
+    path: '/compliance-knowledge',
+    getParentRoute: () => SuperAdminRoute,
+  } as any)
+const SuperAdminComplianceRegistryRoute =
+  SuperAdminComplianceRegistryRouteImport.update({
+    id: '/compliance-registry',
+    path: '/compliance-registry',
+    getParentRoute: () => SuperAdminRoute,
+  } as any)
+const SuperAdminModulesRoute = SuperAdminModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminPaymentsRoute = SuperAdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminPlansRoute = SuperAdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminSuccessRoute = SuperAdminSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminSupportRoute = SuperAdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => SuperAdminRoute,
+} as any)
+const SuperAdminWhitelabelRoute = SuperAdminWhitelabelRouteImport.update({
+  id: '/whitelabel',
+  path: '/whitelabel',
   getParentRoute: () => SuperAdminRoute,
 } as any)
 
@@ -240,18 +240,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/super-admin-demo': {
-      id: '/super-admin-demo'
-      path: '/super-admin-demo'
-      fullPath: '/super-admin-demo'
-      preLoaderRoute: typeof SuperAdminDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/super-admin': {
-      id: '/super-admin'
-      path: '/super-admin'
-      fullPath: '/super-admin'
-      preLoaderRoute: typeof SuperAdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -261,11 +254,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/super-admin': {
+      id: '/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof SuperAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/super-admin-demo': {
+      id: '/super-admin-demo'
+      path: '/super-admin-demo'
+      fullPath: '/super-admin-demo'
+      preLoaderRoute: typeof SuperAdminDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/super-admin/': {
@@ -275,74 +275,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuperAdminIndexRouteImport
       parentRoute: typeof SuperAdminRoute
     }
-    '/super-admin/whitelabel': {
-      id: '/super-admin/whitelabel'
-      path: '/whitelabel'
-      fullPath: '/super-admin/whitelabel'
-      preLoaderRoute: typeof SuperAdminWhitelabelRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/support': {
-      id: '/super-admin/support'
-      path: '/support'
-      fullPath: '/super-admin/support'
-      preLoaderRoute: typeof SuperAdminSupportRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/success': {
-      id: '/super-admin/success'
-      path: '/success'
-      fullPath: '/super-admin/success'
-      preLoaderRoute: typeof SuperAdminSuccessRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/plans': {
-      id: '/super-admin/plans'
-      path: '/plans'
-      fullPath: '/super-admin/plans'
-      preLoaderRoute: typeof SuperAdminPlansRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/payments': {
-      id: '/super-admin/payments'
-      path: '/payments'
-      fullPath: '/super-admin/payments'
-      preLoaderRoute: typeof SuperAdminPaymentsRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/modules': {
-      id: '/super-admin/modules'
-      path: '/modules'
-      fullPath: '/super-admin/modules'
-      preLoaderRoute: typeof SuperAdminModulesRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/compliance-registry': {
-      id: '/super-admin/compliance-registry'
-      path: '/compliance-registry'
-      fullPath: '/super-admin/compliance-registry'
-      preLoaderRoute: typeof SuperAdminComplianceRegistryRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/compliance-knowledge': {
-      id: '/super-admin/compliance-knowledge'
-      path: '/compliance-knowledge'
-      fullPath: '/super-admin/compliance-knowledge'
-      preLoaderRoute: typeof SuperAdminComplianceKnowledgeRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/companies': {
-      id: '/super-admin/companies'
-      path: '/companies'
-      fullPath: '/super-admin/companies'
-      preLoaderRoute: typeof SuperAdminCompaniesRouteImport
-      parentRoute: typeof SuperAdminRoute
-    }
-    '/super-admin/billing': {
-      id: '/super-admin/billing'
-      path: '/billing'
-      fullPath: '/super-admin/billing'
-      preLoaderRoute: typeof SuperAdminBillingRouteImport
+    '/super-admin/ai': {
+      id: '/super-admin/ai'
+      path: '/ai'
+      fullPath: '/super-admin/ai'
+      preLoaderRoute: typeof SuperAdminAiRouteImport
       parentRoute: typeof SuperAdminRoute
     }
     '/super-admin/audit': {
@@ -352,11 +289,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuperAdminAuditRouteImport
       parentRoute: typeof SuperAdminRoute
     }
-    '/super-admin/ai': {
-      id: '/super-admin/ai'
-      path: '/ai'
-      fullPath: '/super-admin/ai'
-      preLoaderRoute: typeof SuperAdminAiRouteImport
+    '/super-admin/billing': {
+      id: '/super-admin/billing'
+      path: '/billing'
+      fullPath: '/super-admin/billing'
+      preLoaderRoute: typeof SuperAdminBillingRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/companies': {
+      id: '/super-admin/companies'
+      path: '/companies'
+      fullPath: '/super-admin/companies'
+      preLoaderRoute: typeof SuperAdminCompaniesRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/compliance-knowledge': {
+      id: '/super-admin/compliance-knowledge'
+      path: '/compliance-knowledge'
+      fullPath: '/super-admin/compliance-knowledge'
+      preLoaderRoute: typeof SuperAdminComplianceKnowledgeRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/compliance-registry': {
+      id: '/super-admin/compliance-registry'
+      path: '/compliance-registry'
+      fullPath: '/super-admin/compliance-registry'
+      preLoaderRoute: typeof SuperAdminComplianceRegistryRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/modules': {
+      id: '/super-admin/modules'
+      path: '/modules'
+      fullPath: '/super-admin/modules'
+      preLoaderRoute: typeof SuperAdminModulesRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/payments': {
+      id: '/super-admin/payments'
+      path: '/payments'
+      fullPath: '/super-admin/payments'
+      preLoaderRoute: typeof SuperAdminPaymentsRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/plans': {
+      id: '/super-admin/plans'
+      path: '/plans'
+      fullPath: '/super-admin/plans'
+      preLoaderRoute: typeof SuperAdminPlansRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/success': {
+      id: '/super-admin/success'
+      path: '/success'
+      fullPath: '/super-admin/success'
+      preLoaderRoute: typeof SuperAdminSuccessRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/support': {
+      id: '/super-admin/support'
+      path: '/support'
+      fullPath: '/super-admin/support'
+      preLoaderRoute: typeof SuperAdminSupportRouteImport
+      parentRoute: typeof SuperAdminRoute
+    }
+    '/super-admin/whitelabel': {
+      id: '/super-admin/whitelabel'
+      path: '/whitelabel'
+      fullPath: '/super-admin/whitelabel'
+      preLoaderRoute: typeof SuperAdminWhitelabelRouteImport
       parentRoute: typeof SuperAdminRoute
     }
   }
